@@ -1,130 +1,283 @@
-<?php
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phan Report Dashboard</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --md-surface:#ffffff;
+            --md-bg:#f6f7fb;
+            --md-text:#1f2937;
+            --md-muted:#64748b;
+            --md-primary:#3f51b5; /* indigo */
+            --md-primary-ink:#fff;
+            --md-outline:#e5e7eb;
+            --md-chip:#eef2ff;
+            --md-danger:#ef4444;
+            --md-warn:#f59e0b;
+            --md-info:#3b82f6;
+            --radius:14px;
+            --elev-1:0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.1);
+            --elev-2:0 4px 10px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.06);
+        }
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{margin:0;background:var(--md-bg);color:var(--md-text);font:14px/1.45 Roboto, system-ui, -apple-system, Segoe UI, Helvetica, Arial}
+        header{position:sticky;top:0;z-index:10;background:var(--md-surface);box-shadow:var(--elev-1);padding:12px 16px;display:flex;gap:12px;align-items:center}
+        h1{font-size:16px;margin:0;font-weight:700;color:#111827}
+        .pill{margin-left:6px;padding:4px 10px;background:var(--md-chip);border:1px solid var(--md-outline);border-radius:999px;color:var(--md-muted)}
+        .actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+        input[type="search"]{background:#fff;border:1px solid var(--md-outline);border-radius:10px;padding:8px 12px;min-width:240px}
+        .btn{appearance:none;border:1px solid var(--md-outline);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+        .btn.primary{background:var(--md-primary);color:var(--md-primary-ink);border-color:transparent}
+        .btn:active{transform:translateY(1px)}
 
-namespace App\Controller;
+        .layout{display:grid;grid-template-columns:280px 1fr;gap:16px; padding:16px; height:calc(100% - 60px)}
+        aside{background:var(--md-surface);border:1px solid var(--md-outline);border-radius:var(--radius);display:flex;flex-direction:column;min-height:0}
+        .aside-header{padding:12px 14px;border-bottom:1px solid var(--md-outline);display:flex;justify-content:space-between;align-items:center}
+        .files{overflow:auto; flex:1; padding:6px}
+        .file{padding:10px 12px;border:1px solid transparent;border-radius:10px;display:flex;align-items:center;gap:.5rem;cursor:pointer}
+        .file:hover{background:#f8fafc}
+        .file.active{background:#eef2ff;border-color:#e0e7ff}
+        .count{margin-left:auto;background:#eef2ff;border:1px solid #e0e7ff;color:#4f46e5;padding:2px 8px;border-radius:999px;font-size:12px}
+        .progress{margin-left:.35rem;font-size:11px;color:var(--md-muted)}
 
-use App\Entity\GretaPole;
-use App\Entity\IncomingCall;
-use App\Entity\User;
-use App\Entity\UserDailyStatus;
-use App\Entity\PurchaseRequest;
-use App\Entity\Enum\PurchaseRequestStatus;
-use App\Kernel as GretaPortalApp;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
+        main{display:flex;flex-direction:column;gap:12px;min-height:0}
+        .card{background:var(--md-surface);border:1px solid var(--md-outline);border-radius:var(--radius);box-shadow:var(--elev-1)}
+        .drop{padding:18px;text-align:center;color:var(--md-muted);border:2px dashed var(--md-outline);border-radius:var(--radius);background:#fff}
+        .drop.dragover{background:#f5f8ff;border-color:#c7d2fe}
 
-abstract class AbstractPortalController extends AbstractController
-{
-    public function __construct(protected EntityManagerInterface $entityManager)
-    {
-    }
+        .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px}
+        .chip{display:inline-flex;align-items:center;gap:.4rem;padding:6px 10px;border-radius:999px;border:1px solid var(--md-outline);background:#fff;color:var(--md-muted);user-select:none}
+        .chip input{margin:0 4px 0 0}
 
-    protected function render(string $view, array $parameters = [], ?Response $response = null): Response
-    {
-        $callBadge = $this->entityManager->getRepository(IncomingCall::class)->countToBeHandledByUser($this->getUser());
+        table{width:100%; border-collapse:collapse}
+        thead th{position:sticky;top:0;background:#f8fafc;border-bottom:1px solid var(--md-outline);padding:10px;text-align:left;font-weight:600}
+        tbody td{padding:10px;border-bottom:1px solid var(--md-outline);vertical-align:top}
+        tbody tr:hover{background:#f9fafb}
+        .sev{display:inline-flex;align-items:center;gap:.35rem;padding:3px 8px;border-radius:999px;font-size:12px;border:1px solid var(--md-outline)}
+        .sev.critical{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+        .sev.high{background:#ffe4e6;color:#9f1239;border-color:#fecdd3}
+        .sev.normal{background:#fef3c7;color:#92400e;border-color:#fde68a}
+        .sev.low,.sev.info{background:#dbeafe;color:#1e40af;border-color:#bfdbfe}
 
-if (empty($callBadge)) {
-$callBadge = '';
-}
+        .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+        .cell-path{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 42ch; display:inline-block; vertical-align:bottom}
+        .wrap{word-break:break-word; overflow-wrap:anywhere}
+        .path-tools{display:inline-flex; gap:.25rem; margin-left:.35rem}
+        .btn-mini{font-size:11px; padding:2px 6px; border-radius:6px; border:1px solid var(--md-outline); background:#fff}
+        .btn-mini:hover{background:#f3f4f6}
+        .done{opacity:.6}
+        footer{padding:10px 14px;color:var(--md-muted);font-size:12px;text-align:center}
 
-$parameters['portal'] = [
-'appName' => GretaPortalApp::NAME,
-'appVersion' => GretaPortalApp::VERSION,
-'menuElements' => [
-[
-'label' => 'Accueil',
-'icon' => 'house',
-'href' => $this->generateUrl('homepage'),
-],
-[
-'label' => 'Base documentaire',
-'icon' => 'folder-open',
-'href' => $this->generateUrl('ecm_tree'),
-],
-[
-'label' => 'Annuaire',
-'icon' => 'address-book',
-'href' => $this->generateUrl('user_public_list'),
-],
-[
-'label' => 'Demandes entrantes',
-'icon' => 'phone-volume',
-'href' => $this->generateUrl('incoming_call_list'),
-'badge' => $callBadge,
-],
-/*
-[
-'label' => 'Hello, world!',
-'icon' => 'list',
-'href' => '/',
-'subelements' => [
-[
-'icon' => 'list',
-'label' => 'World 1',
-'href' => '/',
-],
-[
-'separator_before' => true,
-'icon' => 'list',
-'label' => 'World 2',
-'href' => '/',
-],
-],
-],
-*/
-],
-];
+        .toast{position:fixed;bottom:16px;right:16px;background:#111827;color:#fff;border-radius:8px;padding:10px 14px;box-shadow:var(--elev-2);opacity:0;transform:translateY(6px);transition:.2s}
+        .toast.show{opacity:1;transform:translateY(0)}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Phan Dashboard</h1>
+    <span class="pill" id="summary">0 fichiers • 0 issues</span>
+    <div class="actions">
+        <input id="search" type="search" placeholder="Rechercher..." />
+        <button id="loadJsonBtn" class="btn">Charger JSON</button>
+        <label class="btn primary" for="fileInput">Importer…</label>
+        <input id="fileInput" type="file" accept="application/json,.json,application/xml,.xml,text/xml" class="hidden" style="display:none" />
+    </div>
+</header>
 
-if ($this->isGranted(User::ROLE_ACCESS_PURCHASE_REQUESTS) || $this->isGranted(User::ROLE_PURCHASE_REQUEST_VALIDATOR)) {
-$requestsBadge = '';
+<div class="layout">
+    <aside>
+        <div class="aside-header"><strong>FICHIERS</strong><button id="clearFilter" class="btn" style="padding:6px 10px;font-size:12px;">Réinitialiser</button></div>
+        <div class="files" id="fileList"></div>
+    </aside>
 
-if ($this->isGranted(User::ROLE_PURCHASE_REQUEST_VALIDATOR)) {
-$requestsToValidate = $this->entityManager->getRepository(PurchaseRequest::class)->count([
-'validator' => $this->getUser(),
-'status' => PurchaseRequestStatus::TO_BE_VALIDATED,
-]);
+    <main>
+        <div class="card drop" id="dropzone">Déposez ou cliquez pour importer votre rapport Phan</div>
+        <div class="card">
+            <div class="toolbar">
+                <label class="chip"><input type="checkbox" class="sevFilter" value="critical" checked>Critique</label>
+                <label class="chip"><input type="checkbox" class="sevFilter" value="high" checked>Élevée</label>
+                <label class="chip"><input type="checkbox" class="sevFilter" value="normal" checked>Normal</label>
+                <label class="chip"><input type="checkbox" class="sevFilter" value="low" checked>Faible</label>
+                <label class="chip"><input type="checkbox" class="sevFilter" value="info" checked>Info</label>
+                <label class="chip"><input type="checkbox" id="onlyOpen">À faire seulement</label>
+                <button id="exportState" class="btn">Exporter l'état</button>
+                <button id="resetState" class="btn">Réinitialiser l'état</button>
+                <div class="mono" id="activeFileHint" style="margin-left:auto;color:var(--md-muted)"></div>
+            </div>
+            <div style="overflow:auto">
+                <table>
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th data-k="severity">Sévérité</th>
+                        <th data-k="type">Type</th>
+                        <th data-k="file">Fichier</th>
+                        <th data-k="line">Ligne</th>
+                        <th data-k="message">Message</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+            <footer id="footer">Aucun fichier chargé</footer>
+        </div>
+    </main>
+</div>
 
-if ($requestsToValidate > 0) {
-$requestsBadge = $requestsToValidate;
-}
-}
+<div class="toast" id="toast"></div>
 
-$parameters['portal']['menuElements'][] = [
-'label' => 'Achats',
-'icon' => 'cart-shopping',
-'href' => $this->generateUrl('purchase_request_list'),
-'badge' => $requestsBadge,
-];
-}
+<script>
+    (function(){
+        // ===== Persistent checklist state =====
+        const STORAGE_KEY='phan-dashboard-state-v2';
+        let state = loadState(); // { issueId: true }
 
-if (null !== $this->getUser()->getZulipId()) {
-$parameters['portal']['menuElements'][] = [
-'id' => 'inbox',
-'label' => 'Messagerie',
-'icon' => 'comments',
-'href' => $this->generateUrl('zulip'),
-];
-}
+        // ===== State =====
+        let raw=[],filtered=[],byFile=new Map();
+        let activeFile=null,sortKey='severity',sortDir='asc';
+        const $=q=>document.querySelector(q),$$=q=>Array.from(document.querySelectorAll(q));
+        const tbody=$('#tbody'),fileList=$('#fileList'),search=$('#search'),summary=$('#summary'),activeFileHint=$('#activeFileHint');
+        const drop=$('#dropzone'),fileInput=$('#fileInput'),toast=$('#toast');
+        const onlyOpen=$('#onlyOpen'), exportStateBtn=$('#exportState'), resetStateBtn=$('#resetState');
 
-$poles = $this->entityManager->getRepository(GretaPole::class)->findByEnabled(true, [ 'name' => 'ASC' ]);
+        // ===== Utils =====
+        const sevOrder={critical:0,high:1,normal:2,low:3,info:4};
+        const sevClass=s=>['critical','high','normal','low','info'].includes(String(s).toLowerCase())?String(s).toLowerCase():'info';
+        const fmtSev=s=>({critical:'Critique',high:'Élevée',normal:'Normal',low:'Faible',info:'Info'})[sevClass(s)];
+        const escapeHtml=s=>(s+'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+        const cleanAnsi=s=>String(s||'').replace(/\u001b\[[0-9;]*m/gi,'');
+        const mapSeverity=v=>{if(typeof v==='number')return v>=10?'critical':(v>=5?'normal':'info');const t=String(v||'info').toLowerCase();if(/^(critical|high|10)$/.test(t))return'critical';if(/^(normal|medium|moderate|5)$/.test(t))return'normal';return'info';};
+        function toastMsg(msg){toast.textContent=msg;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2200);}
+        function footerMsg(msg){$('#footer').textContent=msg;}
+        function issueId(it){ return btoa(unescape(encodeURIComponent([it.file,it.line,it.type,it.message].join('|')))); }
+        function progressFor(items){ let t=items.length, d=0; for(const it of items){ if(state[issueId(it)]===true) d++; } return [d,t]; }
+        function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+        function loadState(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')||{}; }catch(_){ return {}; } }
+        function shortPath(p){
+            p=String(p||''); const max=56; if(p.length<=max) return p;
+            const parts=p.split(/[/\\]/); const file=parts.pop(); const dir=parts.join('/');
+            const keep=Math.max(8, Math.floor((max-file.length-3)/2));
+            const head=dir.slice(0,keep); const tail=dir.slice(-keep);
+            return `${head}…/${file}`.replace(/\/{2,}/g,'/');
+        }
 
-// Put the user pole on top of the list
-$polesById = array_combine(
-array_map(fn (GretaPole $pole): int => $pole->getId(), $poles),
-$poles
-);
+        // ===== IDE Links =====
+        function ideLinks(file,line){
+            const f = encodeURIComponent(file);
+            const ln = Number(line)||1;
+            const vs = `vscode://file/${f}:${ln}`;      // VS Code
+            const codium = `vscodium://file/${f}:${ln}`; // VSCodium
+            const phpstorm = `phpstorm://open?file=${encodeURIComponent(file)}&line=${ln}`; // PhpStorm
+            const netbeans = `netbeans://open/?f=${encodeURIComponent(file)}&line=${ln}`; // NetBeans (selon assoc.)
+            return {vs,codium,phpstorm,netbeans};
+        }
 
-unset($polesById[$this->getUser()->getGretaPole()->getId()]);
-array_unshift($poles, $this->getUser()->getGretaPole());
+        // ===== Loaders =====
+        $('#loadJsonBtn').onclick=()=>fetch('phan-report.json').then(r=>r.text()).then(processText).catch(()=>toastMsg('Aucun phan-report.json trouvé'));
+        function loadFromFile(file){ const reader=new FileReader(); reader.onload=()=>{ try{ processText(reader.result); } catch(e){ toastMsg('Erreur: '+e.message); } }; reader.readAsText(file); }
+        function processText(txt){ const t=String(txt||'').trim(); if(!t){ footerMsg('Fichier vide'); return; } try{ t.startsWith('<')?ingest(parseCheckstyle(t)):ingest(JSON.parse(t)); } catch(e){ footerMsg('Erreur parsing: '+e.message); } }
+        function parseCheckstyle(xml){ const dom=new DOMParser().parseFromString(xml,'application/xml'); if(dom.querySelector('parsererror')) throw new Error('XML invalide'); const issues=[]; dom.querySelectorAll('file').forEach(f=>{const name=f.getAttribute('name')||'unknown'; f.querySelectorAll('error').forEach(err=>issues.push({file:name,line:Number(err.getAttribute('line')||0),severity:err.getAttribute('severity')||'info',type:err.getAttribute('source')||'Issue',message:err.getAttribute('message')||''}));}); return issues; }
 
-$parameters['portal']['gretaPoles'] = array_values($poles);
+        // ===== Ingest =====
+        function ingest(json){
+            const arr=Array.isArray(json)?json:(json?.issues||[]);
+            raw=arr.map(x=>({
+                severity:mapSeverity(x.severity??x.level??'info'),
+                type:x.type||x.check_name||x.rule||'Issue',
+                file:x.file||x?.location?.path||x.path||'unknown',
+                line:Number(x.line??x?.location?.lines?.begin??x.begin??0),
+                message:cleanAnsi(x.message||x.description||x.text||''),
+            }));
+            byFile=new Map();
+            for(const it of raw){ if(!byFile.has(it.file)) byFile.set(it.file,[]); byFile.get(it.file).push(it); }
+            activeFile=null;
+            renderSidebar();
+            applyFilters();
+            footerMsg('Rapport chargé');
+        }
 
-$dailyStatuses = UserDailyStatus::STATUSES;
-unset($dailyStatuses[UserDailyStatus::STATUS_ON_SITE]); // Handled by site
-unset($dailyStatuses[UserDailyStatus::STATUS_ABSENT]); // Forbidden in this menu
+        // ===== Sidebar =====
+        function renderSidebar(){
+            const entries=[...byFile.entries()].sort((a,b)=>b[1].length-a[1].length);
+            fileList.innerHTML='';
+            for(const [file,items] of entries){
+                const [done,total]=progressFor(items);
+                const div=document.createElement('div');
+                div.className='file'+(activeFile===file?' active':'');
+                div.title=file;
+                div.innerHTML=`<span class="mono cell-path">${escapeHtml(shortPath(file))}</span>
+                     <span class="count">${items.length}</span>
+                     <span class="progress">${done}/${total}</span>`;
+                div.onclick=()=>{ activeFile=(activeFile===file? null:file); applyFilters(); renderSidebar(); };
+                fileList.appendChild(div);
+            }
+            summary.textContent=`${byFile.size} fichiers • ${raw.length} issues`;
+            activeFileHint.textContent=activeFile?`Filtré sur: ${activeFile}`:'';
+        }
 
-$parameters['portal']['dailyStatuses'] = $dailyStatuses;
+        // ===== Filters & table =====
+        function applyFilters(){
+            const allowed=new Set($$('.sevFilter').filter(c=>c.checked).map(c=>c.value));
+            const q=(search.value||'').toLowerCase();
+            filtered = raw.filter(it => allowed.has(sevClass(it.severity)) && (!activeFile || it.file===activeFile) && (q===''||(it.message+it.type+it.file).toLowerCase().includes(q)) && (!onlyOpen.checked || state[issueId(it)]!==true));
+            sortAndRender();
+        }
 
-return parent::render($view, $parameters, $response);
-}
-}
+        function sortAndRender(){
+            const k=sortKey,dir=sortDir==='asc'?1:-1;
+            filtered.sort((a,b)=>{let va=a[k],vb=b[k];if(k==='severity'){va=sevOrder[sevClass(va)]??99;vb=sevOrder[sevClass(vb)]??99;}if(k==='line'){va=Number(va)||0;vb=Number(vb)||0;}if(va<vb)return-1*dir;if(va>vb)return 1*dir;return 0;});
+            tbody.innerHTML=filtered.map(r=>{
+                const id = issueId(r);
+                const checked = state[id]===true;
+                const rowClass = checked? 'done' : '';
+                const links = ideLinks(r.file, r.line||1);
+                const copyVal = `${r.file}:${r.line||1}`;
+                const fileCell = `<span class=\"cell-path\" title=\"${escapeHtml(r.file)}\">${escapeHtml(shortPath(r.file))}</span>
+                        <span class=\"path-tools\">
+                          <button class=\"btn-mini\" data-copy=\"${escapeHtml(copyVal)}\">Copier</button>
+                          <a class=\"btn-mini\" href=\"${links.vs}\" title=\"Ouvrir dans VS Code\">VSCode</a>
+                          <a class=\"btn-mini\" href=\"${links.codium}\" title=\"Ouvrir dans VSCodium\">VSCodium</a>
+                          <a class=\"btn-mini\" href=\"${links.phpstorm}\" title=\"Ouvrir dans PhpStorm\">PhpStorm</a>
+                          <a class=\"btn-mini\" href=\"${links.netbeans}\" title=\"Ouvrir dans NetBeans\">NetBeans</a>
+                        </span>`;
+                return `<tr class="${rowClass}">
+        <td><input type="checkbox" data-id="${id}" ${checked?'checked':''}></td>
+        <td><span class="sev ${sevClass(r.severity)}">${fmtSev(r.severity)}</span></td>
+        <td class="mono">${escapeHtml(r.type)}</td>
+        <td class="mono">${fileCell}</td>
+        <td class="mono">${r.line||''}</td>
+        <td class="wrap">${escapeHtml(r.message)}</td>
+      </tr>`;
+            }).join('');
+
+            // wire checkboxes & copy buttons
+            tbody.querySelectorAll('input[type="checkbox"]').forEach(cb=>{
+                cb.addEventListener('change',()=>{ state[cb.dataset.id]=cb.checked; saveState(); applyFilters(); renderSidebar(); });
+            });
+            tbody.querySelectorAll('button[data-copy]').forEach(btn=>{
+                btn.addEventListener('click',()=>{ navigator.clipboard.writeText(btn.getAttribute('data-copy')); toastMsg('Copié: '+btn.getAttribute('data-copy')); });
+            });
+        }
+
+        // ===== Events =====
+        $('#clearFilter').onclick=()=>{activeFile=null;applyFilters();renderSidebar();};
+        fileInput.addEventListener('change', e=>{ const f=e.target.files?.[0]; if(f) loadFromFile(f); });
+        search.addEventListener('input', applyFilters);
+        $$('.sevFilter').forEach(c=>c.addEventListener('change', applyFilters));
+        $$('thead th').forEach(th=>th.addEventListener('click',()=>{const k=th.dataset.k;if(!k)return;if(sortKey===k)sortDir=sortDir==='asc'?'desc':'asc';else{sortKey=k;sortDir='asc';}sortAndRender();}));
+        drop.addEventListener('click',()=>fileInput.click());
+        ['dragover','dragleave'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.toggle('dragover',ev==='dragover');}));
+        drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('dragover');const f=e.dataTransfer.files?.[0];if(f)loadFromFile(f);});
+        onlyOpen.addEventListener('change',applyFilters);
+        exportStateBtn.addEventListener('click',()=>{ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='phan-dashboard-state.json'; a.click(); URL.revokeObjectURL(url); });
+        resetStateBtn.addEventListener('click',()=>{ if(confirm('Réinitialiser toutes les cases cochées ?')){ state={}; saveState(); applyFilters(); renderSidebar(); toastMsg('État réinitialisé'); } });
+    })();
+</script>
+
+</body>
+</html>
