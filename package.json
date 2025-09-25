@@ -1,0 +1,13 @@
+{
+  "name": "phan-dashboard",
+  "version": "1.0.0",
+  "description": "Material mini UI to visualize Phan reports (JSON/Checkstyle), with checklists and IDE deep links.",
+  "scripts": {
+    "start": "http-server -c-1 -p 5173 .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "prettier": "^3.3.3"
+  }
+}

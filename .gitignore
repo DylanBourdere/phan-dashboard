@@ -1,0 +1,21 @@
+### .gitignore
+```gitignore
+# Logs / OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Node / tools (si vous en rajoutez)
+node_modules/
+dist/
+build/
+
+# Rapports locaux
+phan-report.json
+checkstyle.xml
+phan-dashboard-state.json
+
+# IDEs
+.idea/
+.vscode/
+nbproject/
