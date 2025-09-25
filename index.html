@@ -23,6 +23,19 @@
             --elev-1:0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.1);
             --elev-2:0 4px 10px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.06);
         }
+        /* Dark theme tokens */
+        :root[data-theme="dark"]{
+            --md-surface:#0f172a;
+            --md-bg:#0b1220;
+            --md-text:#e5e7eb;
+            --md-muted:#94a3b8;
+            --md-primary:#818cf8;
+            --md-primary-ink:#0b1220;
+            --md-outline:#1f2a44;
+            --md-chip:#141d33;
+            --elev-1:0 1px 2px rgba(0,0,0,.6), 0 1px 3px rgba(0,0,0,.5);
+            --elev-2:0 4px 10px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.45);
+        }
         *{box-sizing:border-box}
         html,body{height:100%}
         body{margin:0;background:var(--md-bg);color:var(--md-text);font:14px/1.45 Roboto, system-ui, -apple-system, Segoe UI, Helvetica, Arial}
@@ -30,8 +43,8 @@
         h1{font-size:16px;margin:0;font-weight:700;color:#111827}
         .pill{margin-left:6px;padding:4px 10px;background:var(--md-chip);border:1px solid var(--md-outline);border-radius:999px;color:var(--md-muted)}
         .actions{margin-left:auto;display:flex;gap:8px;align-items:center}
-        input[type="search"]{background:#fff;border:1px solid var(--md-outline);border-radius:10px;padding:8px 12px;min-width:240px}
-        .btn{appearance:none;border:1px solid var(--md-outline);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+        input[type="search"]{background:var(--md-surface);border:1px solid var(--md-outline);border-radius:10px;padding:8px 12px;min-width:240px;color:var(--md-text)}
+        .btn{appearance:none;border:1px solid var(--md-outline);background:var(--md-surface);color:var(--md-text);border-radius:10px;padding:8px 12px;cursor:pointer}
         .btn.primary{background:var(--md-primary);color:var(--md-primary-ink);border-color:transparent}
         .btn:active{transform:translateY(1px)}
 
@@ -47,15 +60,20 @@
 
         main{display:flex;flex-direction:column;gap:12px;min-height:0}
         .card{background:var(--md-surface);border:1px solid var(--md-outline);border-radius:var(--radius);box-shadow:var(--elev-1)}
-        .drop{padding:18px;text-align:center;color:var(--md-muted);border:2px dashed var(--md-outline);border-radius:var(--radius);background:#fff}
+        .drop{padding:18px;text-align:center;color:var(--md-muted);border:2px dashed var(--md-outline);border-radius:var(--radius);background:var(--md-surface)}
         .drop.dragover{background:#f5f8ff;border-color:#c7d2fe}
 
         .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px}
-        .chip{display:inline-flex;align-items:center;gap:.4rem;padding:6px 10px;border-radius:999px;border:1px solid var(--md-outline);background:#fff;color:var(--md-muted);user-select:none}
+        .chip{display:inline-flex;align-items:center;gap:.4rem;padding:6px 10px;border-radius:999px;border:1px solid var(--md-outline);background:var(--md-surface);color:var(--md-muted);user-select:none}
         .chip input{margin:0 4px 0 0}
+        .chip .count{margin-left:.25rem;background:var(--md-chip);border-color:var(--md-outline);color:var(--md-muted)}
 
         table{width:100%; border-collapse:collapse}
-        thead th{position:sticky;top:0;background:#f8fafc;border-bottom:1px solid var(--md-outline);padding:10px;text-align:left;font-weight:600}
+        thead th{position:sticky;top:0;background:#0b1220;/* overridden below for light */border-bottom:1px solid var(--md-outline);padding:10px;text-align:left;font-weight:600;user-select:none}
+        :root:not([data-theme="dark"]) thead th{background:#f8fafc}
+        thead th[role="button"]{cursor:pointer}
+        thead th[aria-sort="asc"]::after{content:" ▲";color:var(--md-muted);font-size:12px}
+        thead th[aria-sort="desc"]::after{content:" ▼";color:var(--md-muted);font-size:12px}
         tbody td{padding:10px;border-bottom:1px solid var(--md-outline);vertical-align:top}
         tbody tr:hover{background:#f9fafb}
         .sev{display:inline-flex;align-items:center;gap:.35rem;padding:3px 8px;border-radius:999px;font-size:12px;border:1px solid var(--md-outline)}
@@ -68,7 +86,7 @@
         .cell-path{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 42ch; display:inline-block; vertical-align:bottom}
         .wrap{word-break:break-word; overflow-wrap:anywhere}
         .path-tools{display:inline-flex; gap:.25rem; margin-left:.35rem}
-        .btn-mini{font-size:11px; padding:2px 6px; border-radius:6px; border:1px solid var(--md-outline); background:#fff}
+        .btn-mini{font-size:11px; padding:2px 6px; border-radius:6px; border:1px solid var(--md-outline); background:var(--md-surface); color:var(--md-text)}
         .btn-mini:hover{background:#f3f4f6}
         .done{opacity:.6}
         footer{padding:10px 14px;color:var(--md-muted);font-size:12px;text-align:center}
@@ -83,6 +101,7 @@
     <span class="pill" id="summary">0 fichiers • 0 issues</span>
     <div class="actions">
         <input id="search" type="search" placeholder="Rechercher..." />
+        <button id="themeToggle" class="btn" title="Basculer le thème" aria-pressed="false">🌙</button>
         <button id="loadJsonBtn" class="btn">Charger JSON</button>
         <label class="btn primary" for="fileInput">Importer…</label>
         <input id="fileInput" type="file" accept="application/json,.json,application/xml,.xml,text/xml" class="hidden" style="display:none" />
@@ -135,6 +154,8 @@
     (function(){
         // ===== Persistent checklist state =====
         const STORAGE_KEY='phan-dashboard-state-v2';
+        const UI_KEY='phan-dashboard-ui-v1';
+        const THEME_KEY='phan-dashboard-theme';
         let state = loadState(); // { issueId: true }
 
         // ===== State =====
@@ -143,6 +164,7 @@
         const $=q=>document.querySelector(q),$$=q=>Array.from(document.querySelectorAll(q));
         const tbody=$('#tbody'),fileList=$('#fileList'),search=$('#search'),summary=$('#summary'),activeFileHint=$('#activeFileHint');
         const drop=$('#dropzone'),fileInput=$('#fileInput'),toast=$('#toast');
+        const themeToggle=$('#themeToggle');
         const onlyOpen=$('#onlyOpen'), exportStateBtn=$('#exportState'), resetStateBtn=$('#resetState');
 
         // ===== Utils =====
@@ -158,6 +180,39 @@
         function progressFor(items){ let t=items.length, d=0; for(const it of items){ if(state[issueId(it)]===true) d++; } return [d,t]; }
         function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
         function loadState(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')||{}; }catch(_){ return {}; } }
+        function saveUi(){
+            const sev = $$('.sevFilter').map(c=>({v:c.value,checked:c.checked}));
+            const ui = { sev, search: search.value||'', onlyOpen: !!onlyOpen.checked, sortKey, sortDir, activeFile };
+            try{ localStorage.setItem(UI_KEY, JSON.stringify(ui)); }catch(_){ }
+        }
+        function loadUi(){
+            try{ return JSON.parse(localStorage.getItem(UI_KEY)||'null'); }catch(_){ return null; }
+        }
+        function applySavedUi(){
+            const ui = loadUi(); if(!ui) return;
+            if(Array.isArray(ui.sev)){
+                for(const c of $$('.sevFilter')){
+                    const f = ui.sev.find(x=>x.v===c.value);
+                    if(f) c.checked = !!f.checked;
+                }
+            }
+            search.value = ui.search||'';
+            onlyOpen.checked = !!ui.onlyOpen;
+            sortKey = ui.sortKey||sortKey; sortDir = ui.sortDir||sortDir;
+            activeFile = ui.activeFile||null;
+        }
+        function setTheme(theme){
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem(THEME_KEY, theme);
+            const isDark = theme==='dark';
+            if(themeToggle){ themeToggle.setAttribute('aria-pressed', String(isDark)); themeToggle.textContent = isDark?'☀️':'🌙'; }
+        }
+        function initTheme(){
+            const saved = localStorage.getItem(THEME_KEY);
+            if(saved){ setTheme(saved); return; }
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            setTheme(prefersDark?'dark':'light');
+        }
         function shortPath(p){
             p=String(p||''); const max=56; if(p.length<=max) return p;
             const parts=p.split(/[/\\]/); const file=parts.pop(); const dir=parts.join('/');
@@ -198,6 +253,7 @@
             activeFile=null;
             renderSidebar();
             applyFilters();
+            saveUi();
             footerMsg('Rapport chargé');
         }
 
@@ -218,6 +274,7 @@
             }
             summary.textContent=`${byFile.size} fichiers • ${raw.length} issues`;
             activeFileHint.textContent=activeFile?`Filtré sur: ${activeFile}`:'';
+            updateSeverityChipCounts();
         }
 
         // ===== Filters & table =====
@@ -226,6 +283,7 @@
             const q=(search.value||'').toLowerCase();
             filtered = raw.filter(it => allowed.has(sevClass(it.severity)) && (!activeFile || it.file===activeFile) && (q===''||(it.message+it.type+it.file).toLowerCase().includes(q)) && (!onlyOpen.checked || state[issueId(it)]!==true));
             sortAndRender();
+            saveUi();
         }
 
         function sortAndRender(){
@@ -245,7 +303,7 @@
                           <a class=\"btn-mini\" href=\"${links.phpstorm}\" title=\"Ouvrir dans PhpStorm\">PhpStorm</a>
                           <a class=\"btn-mini\" href=\"${links.netbeans}\" title=\"Ouvrir dans NetBeans\">NetBeans</a>
                         </span>`;
-                return `<tr class="${rowClass}">
+                return `<tr class="${rowClass}" data-id="${id}">
         <td><input type="checkbox" data-id="${id}" ${checked?'checked':''}></td>
         <td><span class="sev ${sevClass(r.severity)}">${fmtSev(r.severity)}</span></td>
         <td class="mono">${escapeHtml(r.type)}</td>
@@ -262,6 +320,17 @@
             tbody.querySelectorAll('button[data-copy]').forEach(btn=>{
                 btn.addEventListener('click',()=>{ navigator.clipboard.writeText(btn.getAttribute('data-copy')); toastMsg('Copié: '+btn.getAttribute('data-copy')); });
             });
+            // row click toggles
+            tbody.querySelectorAll('tr').forEach(tr=>{
+                tr.addEventListener('click',e=>{
+                    if((e.target.closest('.path-tools'))||(e.target.tagName==='INPUT')||(e.target.tagName==='A')||(e.target.tagName==='BUTTON')) return;
+                    const id = tr.getAttribute('data-id');
+                    const cb = tr.querySelector('input[type="checkbox"]');
+                    if(!id||!cb) return;
+                    cb.checked = !cb.checked;
+                    state[id]=cb.checked; saveState(); applyFilters(); renderSidebar();
+                });
+            });
         }
 
         // ===== Events =====
@@ -269,13 +338,42 @@
         fileInput.addEventListener('change', e=>{ const f=e.target.files?.[0]; if(f) loadFromFile(f); });
         search.addEventListener('input', applyFilters);
         $$('.sevFilter').forEach(c=>c.addEventListener('change', applyFilters));
-        $$('thead th').forEach(th=>th.addEventListener('click',()=>{const k=th.dataset.k;if(!k)return;if(sortKey===k)sortDir=sortDir==='asc'?'desc':'asc';else{sortKey=k;sortDir='asc';}sortAndRender();}));
+        $$('thead th').forEach(th=>{
+            const k=th.dataset.k; if(k){ th.setAttribute('role','button'); th.setAttribute('tabindex','0'); }
+            th.addEventListener('click',()=>{const key=th.dataset.k;if(!key)return;if(sortKey===key)sortDir=sortDir==='asc'?'desc':'asc';else{sortKey=key;sortDir='asc';}updateSortIndicators(); sortAndRender(); saveUi();});
+            th.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ') && th.dataset.k){ e.preventDefault(); th.click(); }});
+        });
+        function updateSortIndicators(){
+            $$('thead th').forEach(th=>{ const k=th.dataset.k; if(!k){ th.removeAttribute('aria-sort'); return; } const s=(k===sortKey)?sortDir:'none'; th.setAttribute('aria-sort', s==='none'?'none':s); });
+        }
         drop.addEventListener('click',()=>fileInput.click());
+        drop.setAttribute('role','button'); drop.setAttribute('tabindex','0'); drop.setAttribute('aria-label','Importer un rapport Phan');
         ['dragover','dragleave'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.toggle('dragover',ev==='dragover');}));
         drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('dragover');const f=e.dataTransfer.files?.[0];if(f)loadFromFile(f);});
+        drop.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); fileInput.click(); }});
         onlyOpen.addEventListener('change',applyFilters);
         exportStateBtn.addEventListener('click',()=>{ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='phan-dashboard-state.json'; a.click(); URL.revokeObjectURL(url); });
         resetStateBtn.addEventListener('click',()=>{ if(confirm('Réinitialiser toutes les cases cochées ?')){ state={}; saveState(); applyFilters(); renderSidebar(); toastMsg('État réinitialisé'); } });
+        if(themeToggle){ themeToggle.addEventListener('click',()=>{ const next = (document.documentElement.getAttribute('data-theme')==='dark')?'light':'dark'; setTheme(next); }); }
+
+        // severity counts on chips
+        function updateSeverityChipCounts(){
+            const counts={critical:0,high:0,normal:0,low:0,info:0};
+            for(const it of raw){ counts[sevClass(it.severity)]++; }
+            $$('.sevFilter').forEach(c=>{
+                const label=c.closest('label'); if(!label) return;
+                let badge=label.querySelector('.count');
+                if(!badge){ badge=document.createElement('span'); badge.className='count'; label.appendChild(badge); }
+                badge.textContent=String(counts[c.value]||0);
+            });
+        }
+
+        // Initialize
+        initTheme();
+        applySavedUi();
+        updateSortIndicators();
+        applyFilters();
+        renderSidebar();
     })();
 </script>
 
