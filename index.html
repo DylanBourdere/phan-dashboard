@@ -5,63 +5,333 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Phan Report Dashboard</title>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { 
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-in-out',
+              'slide-up': 'slideUp 0.3s ease-out',
+              'slide-down': 'slideDown 0.3s ease-out',
+              'scale-in': 'scaleIn 0.2s ease-out',
+              'bounce-subtle': 'bounceSubtle 0.6s ease-in-out',
+              'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+              'float': 'float 3s ease-in-out infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' }
+              },
+              slideUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' }
+              },
+              slideDown: {
+                '0%': { opacity: '0', transform: 'translateY(-20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' }
+              },
+              scaleIn: {
+                '0%': { opacity: '0', transform: 'scale(0.9)' },
+                '100%': { opacity: '1', transform: 'scale(1)' }
+              },
+              bounceSubtle: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-4px)' }
+              },
+              pulseGlow: {
+                '0%, 100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.3)' },
+                '50%': { boxShadow: '0 0 30px rgba(99, 102, 241, 0.6)' }
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0px)' },
+                '50%': { transform: 'translateY(-6px)' }
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(45deg, #6366f1, #8b5cf6);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(45deg, #4f46e5, #7c3aed);
+      }
+      ::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+      
+      /* Glass morphism effect */
+      .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .glass-dark {
+        background: rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      /* Gradient text */
+      .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      /* Shimmer effect */
+      .shimmer {
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+      }
+      
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      
+      /* Hover glow effect */
+      .hover-glow:hover {
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        transform: translateY(-2px);
+      }
+      
+      /* Custom checkbox */
+      .custom-checkbox {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s ease;
+      }
+      
+      .custom-checkbox:checked {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-color: #6366f1;
+      }
+      
+      .custom-checkbox:checked::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      
+      /* Loading animation */
+      .loading-dots::after {
+        content: '';
+        animation: loading-dots 1.5s infinite;
+      }
+      
+      @keyframes loading-dots {
+        0%, 20% { content: ''; }
+        40% { content: '.'; }
+        60% { content: '..'; }
+        80%, 100% { content: '...'; }
+      }
+    </style>
 </head>
-<body>
-<header>
-    <h1>Phan Dashboard</h1>
-    <span class="pill" id="summary">0 fichiers • 0 issues</span>
-    <div class="actions">
-        <input id="search" type="search" placeholder="Rechercher..." />
-        <button id="themeToggle" class="btn" title="Basculer le thème" aria-pressed="false">🌙</button>
-        <button id="loadJsonBtn" class="btn">Charger JSON</button>
-        <label class="btn primary" for="fileInput">Importer…</label>
+<body class="bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-slate-900 dark:text-slate-100 font-sans antialiased min-h-screen">
+<!-- Animated background particles -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-indigo-400/20 to-purple-600/20 rounded-full blur-3xl animate-float"></div>
+    <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-600/20 rounded-full blur-3xl animate-float" style="animation-delay: 1.5s;"></div>
+    <div class="absolute top-1/2 left-1/2 w-60 h-60 bg-gradient-to-r from-pink-400/10 to-rose-600/10 rounded-full blur-2xl animate-pulse-glow" style="animation-delay: 3s;"></div>
+</div>
+
+<header class="sticky top-0 z-20 glass dark:glass-dark border-b border-white/20 dark:border-slate-700/50 shadow-xl">
+    <div class="flex items-center gap-4 px-6 py-4">
+        <div class="flex items-center gap-3 animate-fade-in">
+            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 animate-pulse-glow">
+                <span class="text-white font-bold text-lg">P</span>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight gradient-text animate-slide-up">Phan Dashboard</h1>
+        </div>
+        <span class="pill rounded-full border border-indigo-200/50 dark:border-indigo-700/50 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-slate-700 dark:text-slate-300 px-4 py-2 text-sm font-medium shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 animate-scale-in" id="summary">0 fichiers • 0 issues</span>
+        <div class="actions ml-auto flex items-center gap-4 animate-slide-up">
+            <div class="relative group">
+                <input id="search" type="search" placeholder="Rechercher..." class="w-72 pl-12 pr-6 py-3 border border-indigo-200/50 dark:border-indigo-700/50 rounded-xl bg-white/80 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg backdrop-blur-sm" />
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-indigo-400 group-focus-within:text-indigo-600 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none opacity-0 group-focus-within:opacity-100 transition-opacity duration-300">
+                    <div class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                </div>
+            </div>
+            <div class="relative group">
+                <button id="languageToggle" class="p-3 border border-indigo-200/50 dark:border-indigo-700/50 rounded-xl bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-110 backdrop-blur-sm" title="Changer la langue">
+                    <span class="text-xl font-bold" id="languageFlag">🇫🇷</span>
+                </button>
+            </div>
+            <button id="themeToggle" class="p-3 border border-indigo-200/50 dark:border-indigo-700/50 rounded-xl bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300 shadow-sm hover:shadow-md hover:scale-110 backdrop-blur-sm" title="Basculer le thème" aria-pressed="false">
+                <span class="text-xl animate-bounce-subtle">🌙</span>
+            </button>
+            <a href="https://github.com/dylanbourdere/phan-dashboard" target="_blank" rel="noopener noreferrer" class="group inline-flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 dark:from-slate-700 dark:via-slate-800 dark:to-slate-700 text-white rounded-xl hover:from-slate-700 hover:via-slate-800 hover:to-slate-700 dark:hover:from-slate-600 dark:hover:via-slate-700 dark:hover:to-slate-600 transition-all duration-300 text-sm font-medium shadow-xl hover:shadow-2xl hover:scale-105 border border-slate-600/50 dark:border-slate-500/50 backdrop-blur-sm animate-scale-in">
+                <svg class="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                <span class="group-hover:text-blue-300 dark:group-hover:text-blue-400 transition-colors duration-300 font-semibold">GitHub</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 dark:from-blue-600 dark:via-indigo-600 dark:to-purple-700 text-white shadow-lg group-hover:from-blue-400 group-hover:via-indigo-400 group-hover:to-purple-500 dark:group-hover:from-blue-500 dark:group-hover:via-indigo-500 dark:group-hover:to-purple-600 transition-all duration-300 animate-pulse">
+                    <span class="text-sm animate-bounce-subtle">⭐</span>
+                    <span id="github-stars" class="font-bold">-</span>
+                </span>
+            </a>
+            <label class="group relative px-6 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-xl cursor-pointer hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 transition-all duration-300 font-semibold shadow-xl hover:shadow-2xl hover:scale-105 animate-scale-in overflow-hidden" for="fileInput">
+                <span class="relative z-10 flex items-center gap-2">
+                    <span class="text-lg group-hover:scale-110 transition-transform duration-300">📁</span>
+                    <span>Importer…</span>
+                </span>
+                <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 shimmer"></div>
+            </label>
         <input id="fileInput" type="file" accept="application/json,.json,application/xml,.xml,text/xml" class="hidden" style="display:none" />
+        </div>
     </div>
 </header>
 
-<div class="layout">
-    <aside>
-        <div class="aside-header"><strong>FICHIERS</strong><button id="clearFilter" class="btn" style="padding:6px 10px;font-size:12px;">Réinitialiser</button></div>
-        <div class="files" id="fileList"></div>
+<div class="grid grid-cols-[300px_1fr] gap-6 p-6 h-[calc(100vh-80px)]">
+    <aside class="glass dark:glass-dark border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl flex flex-col min-h-0 overflow-hidden hover:shadow-3xl transition-all duration-500 backdrop-blur-xl animate-slide-up">
+        <div class="px-6 py-4 border-b border-gradient-to-r from-indigo-200/30 to-purple-200/30 dark:from-indigo-700/30 dark:to-purple-700/30 flex items-center justify-between bg-gradient-to-r from-slate-50/80 to-indigo-50/30 dark:from-slate-900/80 dark:to-indigo-900/30">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <span class="text-white font-bold text-sm">📁</span>
+                </div>
+                <h2 id="filesTitle" class="font-bold text-slate-700 dark:text-slate-300 text-lg gradient-text">Fichiers</h2>
+            </div>
+            <button id="clearFilter" class="group px-4 py-2 text-xs font-semibold border border-indigo-200/50 dark:border-indigo-700/50 rounded-xl bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-pink-900/20 hover:scale-105 hover:shadow-lg transition-all duration-300 backdrop-blur-sm">
+                <span class="flex items-center gap-2">
+                    <span class="text-sm group-hover:rotate-180 transition-transform duration-500">🔄</span>
+                    <span id="resetButtonText">Réinitialiser</span>
+                </span>
+            </button>
+        </div>
+        <div class="files overflow-auto flex-1 p-4 scrollbar-thin scrollbar-thumb-indigo-300 dark:scrollbar-thumb-indigo-600 scrollbar-track-transparent" id="fileList"></div>
     </aside>
 
-    <main>
-        <div class="card drop" id="dropzone">Déposez ou cliquez pour importer votre rapport Phan</div>
-        <div class="card">
-            <div class="toolbar">
-                <label class="chip"><input type="checkbox" class="sevFilter" value="critical" checked>Critique</label>
-                <label class="chip"><input type="checkbox" class="sevFilter" value="high" checked>Élevée</label>
-                <label class="chip"><input type="checkbox" class="sevFilter" value="normal" checked>Normal</label>
-                <label class="chip"><input type="checkbox" class="sevFilter" value="low" checked>Faible</label>
-                <label class="chip"><input type="checkbox" class="sevFilter" value="info" checked>Info</label>
-                <label class="chip"><input type="checkbox" id="onlyOpen">À faire seulement</label>
-                <button id="exportState" class="btn">Exporter l'état</button>
-                <button id="resetState" class="btn">Réinitialiser l'état</button>
-                <div class="mono" id="activeFileHint" style="margin-left:auto;color:var(--md-muted)"></div>
+    <main class="flex flex-col gap-6 min-h-0">
+        <div class="card drop text-center text-slate-500 border-2 border-dashed border-indigo-200/50 dark:border-indigo-700/50 rounded-3xl glass dark:glass-dark p-12 hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-2xl transition-all duration-500 cursor-pointer group animate-fade-in backdrop-blur-xl" id="dropzone">
+            <div class="flex flex-col items-center gap-6">
+                <div class="relative">
+                    <div class="w-20 h-20 bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 dark:from-indigo-900/40 dark:via-purple-900/40 dark:to-pink-900/40 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-all duration-500 shadow-xl group-hover:shadow-2xl animate-float">
+                        <svg class="w-10 h-10 text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-all duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                    </div>
+                    <div class="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-bounce-subtle">
+                        <span class="text-white text-xs">✨</span>
+                    </div>
+                </div>
+                <div class="group-hover:scale-105 transition-all duration-300 space-y-2">
+                    <h3 class="text-2xl font-bold text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300 gradient-text">Déposez votre rapport Phan</h3>
+                    <p class="text-base text-slate-500 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors duration-300">ou cliquez pour parcourir les fichiers</p>
+                    <div class="flex items-center justify-center gap-2 mt-4">
+                        <span class="text-sm text-indigo-500 dark:text-indigo-400 font-medium">JSON • XML</span>
+                        <span class="w-1 h-1 bg-indigo-300 dark:bg-indigo-600 rounded-full"></span>
+                        <span class="text-sm text-indigo-500 dark:text-indigo-400 font-medium">Checkstyle</span>
+                    </div>
+                </div>
             </div>
-            <div style="overflow:auto">
-                <table>
-                    <thead>
-                    <tr>
-                        <th></th>
-                        <th data-k="severity">Sévérité</th>
-                        <th data-k="type">Type</th>
-                        <th data-k="file">Fichier</th>
-                        <th data-k="line">Ligne</th>
-                        <th data-k="message">Message</th>
+        </div>
+        <div class="card glass dark:glass-dark border border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-full hover:shadow-3xl transition-all duration-500 backdrop-blur-xl animate-fade-in">
+            <div class="toolbar flex flex-wrap gap-3 items-center p-4 bg-gradient-to-r from-slate-50/80 to-indigo-50/30 dark:from-slate-900/80 dark:to-indigo-900/30 border-b border-gradient-to-r from-indigo-200/30 to-purple-200/30 dark:from-indigo-700/30 dark:to-purple-700/30">
+                <div class="flex flex-wrap gap-2">
+                    <label class="chip group inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-red-200/50 dark:border-red-700/50 bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300 cursor-pointer has-[:checked]:bg-gradient-to-r has-[:checked]:from-red-50 has-[:checked]:to-pink-50 has-[:checked]:border-red-300 has-[:checked]:text-red-700 dark:has-[:checked]:from-red-900/30 dark:has-[:checked]:to-pink-900/30 dark:has-[:checked]:border-red-600 dark:has-[:checked]:text-red-300 hover:scale-105 hover:shadow-lg animate-scale-in backdrop-blur-sm"><input type="checkbox" class="sevFilter" value="critical" checked><span class="text-sm group-hover:scale-110 transition-transform duration-300">🔥</span><span class="font-semibold text-sm">Critique</span></label>
+                    <label class="chip group inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-orange-200/50 dark:border-orange-700/50 bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-300 cursor-pointer has-[:checked]:bg-gradient-to-r has-[:checked]:from-orange-50 has-[:checked]:to-yellow-50 has-[:checked]:border-orange-300 has-[:checked]:text-orange-700 dark:has-[:checked]:from-orange-900/30 dark:has-[:checked]:to-yellow-900/30 dark:has-[:checked]:border-orange-600 dark:has-[:checked]:text-orange-300 hover:scale-105 hover:shadow-lg animate-scale-in backdrop-blur-sm"><input type="checkbox" class="sevFilter" value="high" checked><span class="text-sm group-hover:scale-110 transition-transform duration-300">⚠️</span><span class="font-semibold text-sm">Élevée</span></label>
+                    <label class="chip group inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-yellow-200/50 dark:border-yellow-700/50 bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-all duration-300 cursor-pointer has-[:checked]:bg-gradient-to-r has-[:checked]:from-yellow-50 has-[:checked]:to-amber-50 has-[:checked]:border-yellow-300 has-[:checked]:text-yellow-700 dark:has-[:checked]:from-yellow-900/30 dark:has-[:checked]:to-amber-900/30 dark:has-[:checked]:border-yellow-600 dark:has-[:checked]:text-yellow-300 hover:scale-105 hover:shadow-lg animate-scale-in backdrop-blur-sm"><input type="checkbox" class="sevFilter" value="normal" checked><span class="text-sm group-hover:scale-110 transition-transform duration-300">⚡</span><span class="font-semibold text-sm">Normal</span></label>
+                    <label class="chip group inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-blue-200/50 dark:border-blue-700/50 bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300 cursor-pointer has-[:checked]:bg-gradient-to-r has-[:checked]:from-blue-50 has-[:checked]:to-indigo-50 has-[:checked]:border-blue-300 has-[:checked]:text-blue-700 dark:has-[:checked]:from-blue-900/30 dark:has-[:checked]:to-indigo-900/30 dark:has-[:checked]:border-blue-600 dark:has-[:checked]:text-blue-300 hover:scale-105 hover:shadow-lg animate-scale-in backdrop-blur-sm"><input type="checkbox" class="sevFilter" value="low" checked><span class="text-sm group-hover:scale-110 transition-transform duration-300">💡</span><span class="font-semibold text-sm">Faible</span></label>
+                    <label class="chip group inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-cyan-200/50 dark:border-cyan-700/50 bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-all duration-300 cursor-pointer has-[:checked]:bg-gradient-to-r has-[:checked]:from-cyan-50 has-[:checked]:to-teal-50 has-[:checked]:border-cyan-300 has-[:checked]:text-cyan-700 dark:has-[:checked]:from-cyan-900/30 dark:has-[:checked]:to-teal-900/30 dark:has-[:checked]:border-cyan-600 dark:has-[:checked]:text-cyan-300 hover:scale-105 hover:shadow-lg animate-scale-in backdrop-blur-sm"><input type="checkbox" class="sevFilter" value="info" checked><span class="text-sm group-hover:scale-110 transition-transform duration-300">ℹ️</span><span class="font-semibold text-sm">Info</span></label>
+                    <label class="chip group inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-purple-200/50 dark:border-purple-700/50 bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 cursor-pointer has-[:checked]:bg-gradient-to-r has-[:checked]:from-purple-50 has-[:checked]:to-pink-50 has-[:checked]:border-purple-300 has-[:checked]:text-purple-700 dark:has-[:checked]:from-purple-900/30 dark:has-[:checked]:to-pink-900/30 dark:has-[:checked]:border-purple-600 dark:has-[:checked]:text-purple-300 hover:scale-105 hover:shadow-lg animate-scale-in backdrop-blur-sm"><input type="checkbox" id="onlyOpen"><span class="text-sm group-hover:scale-110 transition-transform duration-300">📋</span><span class="font-semibold text-sm">À faire</span></label>
+                </div>
+                <div class="flex gap-2 ml-auto">
+                    <button id="resetState" class="group px-3 py-2 border border-indigo-200/50 dark:border-indigo-700/50 rounded-xl bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-pink-900/20 hover:scale-105 hover:shadow-lg transition-all duration-300 font-semibold text-sm backdrop-blur-sm">
+                        <span class="flex items-center gap-1">
+                            <span class="text-sm group-hover:rotate-180 transition-transform duration-500">🔄</span>
+                            <span>Reset</span>
+                        </span>
+                    </button>
+                    <div class="mono text-slate-500 dark:text-slate-400 text-xs font-mono bg-slate-100/50 dark:bg-slate-800/50 px-2 py-1 rounded-lg backdrop-blur-sm" id="activeFileHint"></div>
+                </div>
+            </div>
+            <div class="overflow-auto flex-1 scrollbar-thin scrollbar-thumb-indigo-300 dark:scrollbar-thumb-indigo-600 scrollbar-track-transparent">
+                <table class="min-w-full text-sm table-fixed">
+                    <thead class="sticky top-0 z-10">
+                    <tr class="bg-gradient-to-r from-slate-50/90 to-indigo-50/30 dark:from-slate-900/90 dark:to-indigo-900/30 backdrop-blur-sm border-b border-indigo-200/30 dark:border-indigo-700/30">
+                        <th class="w-12 px-4 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider"></th>
+                        <th data-k="severity" class="w-32 px-4 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300 hover:scale-105 group">
+                            <span class="flex items-center gap-2">
+                                <span>⚡</span>
+                                <span>Sévérité</span>
+                                <span class="sort-indicator opacity-0 group-hover:opacity-100 transition-opacity duration-300">↕️</span>
+                            </span>
+                        </th>
+                        <th data-k="type" class="w-40 px-4 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300 hover:scale-105 group">
+                            <span class="flex items-center gap-2">
+                                <span>🏷️</span>
+                                <span>Type</span>
+                                <span class="sort-indicator opacity-0 group-hover:opacity-100 transition-opacity duration-300">↕️</span>
+                            </span>
+                        </th>
+                        <th data-k="file" class="w-64 px-4 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300 hover:scale-105 group">
+                            <span class="flex items-center gap-2">
+                                <span>📁</span>
+                                <span>Fichier</span>
+                                <span class="sort-indicator opacity-0 group-hover:opacity-100 transition-opacity duration-300">↕️</span>
+                            </span>
+                        </th>
+                        <th data-k="line" class="w-20 px-4 py-4 text-center text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider cursor-pointer hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300 hover:scale-105 group">
+                            <span class="flex items-center justify-center gap-2">
+                                <span>📍</span>
+                                <span>Ligne</span>
+                                <span class="sort-indicator opacity-0 group-hover:opacity-100 transition-opacity duration-300">↕️</span>
+                            </span>
+                        </th>
+                        <th data-k="message" class="px-4 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                            <span class="flex items-center gap-2">
+                                <span>💬</span>
+                                <span>Message</span>
+                            </span>
+                        </th>
                     </tr>
                     </thead>
-                    <tbody id="tbody"></tbody>
+                    <tbody id="tbody" class="divide-y divide-indigo-200/30 dark:divide-indigo-700/30"></tbody>
                 </table>
             </div>
-            <footer id="footer">Aucun fichier chargé</footer>
         </div>
     </main>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast fixed bottom-6 right-6 bg-slate-900 dark:bg-slate-800 text-white rounded-xl px-4 py-3 shadow-lg border border-slate-700 dark:border-slate-600 transform translate-y-2 opacity-0 transition-all duration-300 backdrop-blur-sm" id="toast"></div>
 <script defer src="./app.js"></script>
 </body>
 </html>

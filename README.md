@@ -1,25 +1,62 @@
-# Phan Report Dashboard
+# Phan Dashboard
 
-UI minimaliste (Material-style) pour visualiser et suivre les rapports **Phan** (JSON ou Checkstyle XML).
-- Import **drag & drop** ou bouton *Importer…*
-- Filtres par sévérité, recherche texte
-- **Checklist** par issue (persistée via localStorage), compteur `fait/total` par fichier
-- Liens “ouvrir dans” **VS Code**, **VSCodium**, **PhpStorm**, **NetBeans**
-- Bouton **Copier** du chemin **avec la ligne** (`path:line`)
+A modern, elegant dashboard for visualizing and tracking Phan reports with an exceptional user interface.
 
-## Démo locale
-Ouvrez `index.html` dans un navigateur récent (Chrome/Firefox/Edge).  
-Glissez-déposez `phan-report.json` ou un `checkstyle.xml`.
+[![GitHub stars](https://img.shields.io/github/stars/dylanbourdere/phan-dashboard?style=social)](https://github.com/dylanbourdere/phan-dashboard)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-> Les liens `vscode://`, `vscodium://`, `phpstorm://open`, `netbeans://open` nécessitent que l’IDE soit installé et que le schéma soit enregistré sur votre OS/navigateur.
+## Features
 
-## Générer un rapport Phan
+- **Modern UI** with dark/light mode
+- **Interactive filtering** by severity and file
+- **Progress tracking** with checkboxes
+- **Persistent state** across sessions
+- **Real-time search** and sorting
 
-### JSON
+## Quick Start
+
 ```bash
-vendor/bin/phan --output-mode json > phan-report.json
-```
-## Développement
-```bash
-npm i
+# Clone and install
+git clone https://github.com/dylanbourdere/phan-dashboard.git
+cd phan-dashboard
+npm install
+
+# Start development server
 npm start
+```
+
+Open `index.html` in your browser and drag & drop your Phan report.
+
+## Supported Formats
+
+- **JSON**: `vendor/bin/phan --output-mode json > report.json`
+- **XML**: `vendor/bin/phan --output-mode checkstyle > report.xml`
+
+## Usage
+
+1. **Import** your Phan report (JSON/XML)
+2. **Filter** by severity, file, or search text
+3. **Track progress** by checking off resolved issues
+4. **Export** your progress state
+
+## Tech Stack
+
+- **Frontend**: HTML5, CSS3, JavaScript ES6+
+- **Styling**: Tailwind CSS
+- **Storage**: localStorage
+- **Architecture**: Modern ES6 classes
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+⭐ **Star this project if you find it helpful!** ⭐
