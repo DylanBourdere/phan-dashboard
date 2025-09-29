@@ -127,6 +127,8 @@ class PhanDashboard {
         this.activeFile = null;
         this.sortKey = 'severity';
         this.sortDir = 'asc';
+        this.toastTimer = null;
+        this.toastHideTimer = null;
 
         // DOM elements
         this.elements = this.initializeElements();
@@ -134,11 +136,11 @@ class PhanDashboard {
         // Severity configuration
         this.severityOrder = { critical: 0, high: 1, normal: 2, low: 3, info: 4 };
         this.severityClasses = {
-            critical: 'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 border-red-300 dark:from-red-900/30 dark:to-pink-900/30 dark:text-red-300 dark:border-red-600 shadow-red-200/50 dark:shadow-red-900/20',
-            high: 'bg-gradient-to-r from-orange-50 to-yellow-50 text-orange-700 border-orange-300 dark:from-orange-900/30 dark:to-yellow-900/30 dark:text-orange-300 dark:border-orange-600 shadow-orange-200/50 dark:shadow-orange-900/20',
-            normal: 'bg-gradient-to-r from-yellow-50 to-amber-50 text-yellow-700 border-yellow-300 dark:from-yellow-900/30 dark:to-amber-900/30 dark:text-yellow-300 dark:border-yellow-600 shadow-yellow-200/50 dark:shadow-yellow-900/20',
-            low: 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-300 dark:from-blue-900/30 dark:to-indigo-900/30 dark:text-blue-300 dark:border-blue-600 shadow-blue-200/50 dark:shadow-blue-900/20',
-            info: 'bg-gradient-to-r from-cyan-50 to-teal-50 text-cyan-700 border-cyan-300 dark:from-cyan-900/30 dark:to-teal-900/30 dark:text-cyan-300 dark:border-cyan-600 shadow-cyan-200/50 dark:shadow-cyan-900/20'
+            critical: 'border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/60 dark:text-red-200',
+            high: 'border-orange-200 bg-orange-50 text-orange-700 dark:border-orange-900 dark:bg-orange-950/60 dark:text-orange-200',
+            normal: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/60 dark:text-amber-200',
+            low: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/60 dark:text-blue-200',
+            info: 'border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-900 dark:bg-teal-950/60 dark:text-teal-200'
         };
 
         this.init();
@@ -469,13 +471,27 @@ class PhanDashboard {
 
     // ===== UI Methods =====
     showToast(message) {
+        if (!this.elements.toast) {
+            return;
+        }
+
         this.elements.toast.textContent = message;
-        this.elements.toast.classList.remove('translate-y-2', 'opacity-0');
-        this.elements.toast.classList.add('translate-y-0', 'opacity-100');
-        
-        setTimeout(() => {
-            this.elements.toast.classList.add('translate-y-2', 'opacity-0');
-            this.elements.toast.classList.remove('translate-y-0', 'opacity-100');
+        this.elements.toast.classList.remove('hidden', 'opacity-0');
+
+        // Force a paint to ensure the transition runs when toggling opacity
+        void this.elements.toast.offsetWidth;
+        this.elements.toast.classList.add('opacity-100');
+
+        clearTimeout(this.toastTimer);
+        clearTimeout(this.toastHideTimer);
+
+        this.toastTimer = setTimeout(() => {
+            this.elements.toast.classList.remove('opacity-100');
+            this.elements.toast.classList.add('opacity-0');
+
+            this.toastHideTimer = setTimeout(() => {
+                this.elements.toast.classList.add('hidden');
+            }, 200);
         }, 2200);
     }
 
@@ -635,37 +651,18 @@ class PhanDashboard {
             }
 
             const summaryDiv = document.createElement('div');
-            summaryDiv.className = 'p-3 mb-3 bg-gradient-to-r from-slate-50/80 to-indigo-50/30 dark:from-slate-900/80 dark:to-indigo-900/30 rounded-xl border border-indigo-200/30 dark:border-indigo-700/30 shadow-sm backdrop-blur-sm animate-fade-in';
+            summaryDiv.className = 'mb-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300';
             summaryDiv.innerHTML = `
-                <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center gap-2">
-                        <div class="w-5 h-5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                            <span class="text-white font-bold text-xs">📊</span>
-                        </div>
-                        <div class="text-xs font-bold text-slate-700 dark:text-slate-300 gradient-text">${this.t('summary_title')}</div>
-                    </div>
+                <div class="flex items-center justify-between font-medium">
+                    <span>${this.t('summary_title')}</span>
+                    <span>${this.raw.length} ${this.t('issues_count')}</span>
                 </div>
-                <div class="flex gap-2 text-xs">
-                    <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-50/50 dark:bg-red-900/20 border border-red-200/50 dark:border-red-700/50">
-                        <span class="w-2 h-2 rounded-full bg-gradient-to-r from-red-500 to-pink-500"></span>
-                        <span class="text-red-700 dark:text-red-300 font-semibold">${severityCounts.critical}</span>
-                    </div>
-                    <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-50/50 dark:bg-orange-900/20 border border-orange-200/50 dark:border-orange-700/50">
-                        <span class="w-2 h-2 rounded-full bg-gradient-to-r from-orange-500 to-yellow-500"></span>
-                        <span class="text-orange-700 dark:text-orange-300 font-semibold">${severityCounts.high}</span>
-                    </div>
-                    <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-yellow-50/50 dark:bg-yellow-900/20 border border-yellow-200/50 dark:border-yellow-700/50">
-                        <span class="w-2 h-2 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500"></span>
-                        <span class="text-yellow-700 dark:text-yellow-300 font-semibold">${severityCounts.normal}</span>
-                    </div>
-                    <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50/50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-700/50">
-                        <span class="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"></span>
-                        <span class="text-blue-700 dark:text-blue-300 font-semibold">${severityCounts.low}</span>
-                    </div>
-                    <div class="flex items-center gap-1 px-2 py-1 rounded-lg bg-cyan-50/50 dark:bg-cyan-900/20 border border-cyan-200/50 dark:border-cyan-700/50">
-                        <span class="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-500 to-teal-500"></span>
-                        <span class="text-cyan-700 dark:text-cyan-300 font-semibold">${severityCounts.info}</span>
-                    </div>
+                <div class="flex flex-wrap gap-2">
+                    <span class="inline-flex items-center gap-1 rounded-full border border-red-200 px-2 py-1 text-red-600 dark:border-red-900 dark:text-red-300"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>${severityCounts.critical}</span>
+                    <span class="inline-flex items-center gap-1 rounded-full border border-orange-200 px-2 py-1 text-orange-600 dark:border-orange-900 dark:text-orange-300"><span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span>${severityCounts.high}</span>
+                    <span class="inline-flex items-center gap-1 rounded-full border border-amber-200 px-2 py-1 text-amber-600 dark:border-amber-900 dark:text-amber-300"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>${severityCounts.normal}</span>
+                    <span class="inline-flex items-center gap-1 rounded-full border border-blue-200 px-2 py-1 text-blue-600 dark:border-blue-900 dark:text-blue-300"><span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>${severityCounts.low}</span>
+                    <span class="inline-flex items-center gap-1 rounded-full border border-teal-200 px-2 py-1 text-teal-600 dark:border-teal-900 dark:text-teal-300"><span class="h-1.5 w-1.5 rounded-full bg-teal-500"></span>${severityCounts.info}</span>
                 </div>
             `;
             this.elements.fileList.appendChild(summaryDiv);
@@ -675,15 +672,18 @@ class PhanDashboard {
             const [done, total] = this.calculateProgress(items);
             const div = document.createElement('div');
             const isActive = this.activeFile === file;
-            
-            div.className = `file group flex items-center justify-between p-4 m-2 rounded-2xl border cursor-pointer transition-all duration-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-indigo-50 dark:hover:from-slate-800 dark:hover:to-indigo-900/30 hover:shadow-lg hover:scale-105 animate-fade-in ${
-                isActive ? 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 border-indigo-300 dark:border-indigo-600 shadow-lg' : 'border-slate-200/50 dark:border-slate-700/50'
+
+            div.className = `file cursor-pointer rounded-lg border px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:border-indigo-400 hover:text-indigo-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-slate-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300 dark:focus-visible:ring-indigo-500 ${
+                isActive
+                    ? 'border-transparent bg-indigo-50 ring-2 ring-indigo-400 dark:border-transparent dark:bg-indigo-950/40 dark:ring-indigo-500'
+                    : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
             }`;
             div.title = file;
             div.setAttribute('data-file', file);
-            
+            div.setAttribute('tabindex', '0');
+
             const progressPercent = total > 0 ? Math.round((done / total) * 100) : 0;
-            
+
             // Count severity for this file
             const fileSeverityCounts = { critical: 0, high: 0, normal: 0, low: 0, info: 0 };
             for (const item of items) {
@@ -691,34 +691,38 @@ class PhanDashboard {
             }
 
             div.innerHTML = `
-                <div class="flex-1 min-w-0">
-                    <div class="font-mono text-sm font-semibold text-slate-700 dark:text-slate-300 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300" title="${this.escapeHtml(file)}">${this.escapeHtml(this.shortPath(file))}</div>
-                    <div class="flex items-center gap-3 mt-2">
-                        <div class="flex-1 bg-slate-200/50 dark:bg-slate-700/50 rounded-full h-2 overflow-hidden">
-                            <div class="progress-bar bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500 shadow-sm" style="width: ${progressPercent}%"></div>
-                        </div>
-                        <span class="progress-text text-xs font-semibold text-slate-500 dark:text-slate-400">${done}/${total}</span>
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="truncate font-medium" title="${this.escapeHtml(file)}">${this.escapeHtml(this.shortPath(file))}</div>
+                        <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">${items.length} ${this.t('issues_count')}</div>
                     </div>
-                    <div class="flex gap-1.5 mt-2">
-                        <span class="severity-badge inline-flex items-center px-2 py-1 rounded-xl text-xs font-bold bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/30 dark:to-pink-900/30 text-red-700 dark:text-red-300 border border-red-200/50 dark:border-red-700/50 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110" data-severity="critical" style="display: ${fileSeverityCounts.critical > 0 ? 'inline-flex' : 'none'}">${fileSeverityCounts.critical}</span>
-                        <span class="severity-badge inline-flex items-center px-2 py-1 rounded-xl text-xs font-bold bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-900/30 dark:to-yellow-900/30 text-orange-700 dark:text-orange-300 border border-orange-200/50 dark:border-orange-700/50 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110" data-severity="high" style="display: ${fileSeverityCounts.high > 0 ? 'inline-flex' : 'none'}">${fileSeverityCounts.high}</span>
-                        <span class="severity-badge inline-flex items-center px-2 py-1 rounded-xl text-xs font-bold bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-200/50 dark:border-yellow-700/50 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110" data-severity="normal" style="display: ${fileSeverityCounts.normal > 0 ? 'inline-flex' : 'none'}">${fileSeverityCounts.normal}</span>
-                        <span class="severity-badge inline-flex items-center px-2 py-1 rounded-xl text-xs font-bold bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-700/50 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110" data-severity="low" style="display: ${fileSeverityCounts.low > 0 ? 'inline-flex' : 'none'}">${fileSeverityCounts.low}</span>
-                        <span class="severity-badge inline-flex items-center px-2 py-1 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-50 to-teal-50 dark:from-cyan-900/30 dark:to-teal-900/30 text-cyan-700 dark:text-cyan-300 border border-cyan-200/50 dark:border-cyan-700/50 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110" data-severity="info" style="display: ${fileSeverityCounts.info > 0 ? 'inline-flex' : 'none'}">${fileSeverityCounts.info}</span>
-                    </div>
+                    <span class="progress-text text-xs text-slate-500 dark:text-slate-400">${done}/${total}</span>
                 </div>
-                <div class="ml-4 flex items-center gap-3">
-                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-slate-100 to-indigo-100 dark:from-slate-700 dark:to-indigo-900/30 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-600/50 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-110">${items.length}</span>
-                    ${isActive ? '<span class="w-3 h-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full shadow-lg animate-pulse"></span>' : ''}
+                <div class="mt-2 h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700">
+                    <div class="progress-bar h-1.5 rounded-full bg-indigo-500 transition-all dark:bg-indigo-400" style="width: ${progressPercent}%"></div>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-1 text-[11px] text-slate-500 dark:text-slate-400">
+                    <span class="severity-badge inline-flex items-center gap-1 rounded-full border border-red-200 px-2 py-0.5" data-severity="critical" style="display: ${fileSeverityCounts.critical > 0 ? 'inline-flex' : 'none'}"><span class="h-1.5 w-1.5 rounded-full bg-red-500"></span><span class="count">${fileSeverityCounts.critical}</span></span>
+                    <span class="severity-badge inline-flex items-center gap-1 rounded-full border border-orange-200 px-2 py-0.5" data-severity="high" style="display: ${fileSeverityCounts.high > 0 ? 'inline-flex' : 'none'}"><span class="h-1.5 w-1.5 rounded-full bg-orange-500"></span><span class="count">${fileSeverityCounts.high}</span></span>
+                    <span class="severity-badge inline-flex items-center gap-1 rounded-full border border-amber-200 px-2 py-0.5" data-severity="normal" style="display: ${fileSeverityCounts.normal > 0 ? 'inline-flex' : 'none'}"><span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span><span class="count">${fileSeverityCounts.normal}</span></span>
+                    <span class="severity-badge inline-flex items-center gap-1 rounded-full border border-blue-200 px-2 py-0.5" data-severity="low" style="display: ${fileSeverityCounts.low > 0 ? 'inline-flex' : 'none'}"><span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span><span class="count">${fileSeverityCounts.low}</span></span>
+                    <span class="severity-badge inline-flex items-center gap-1 rounded-full border border-teal-200 px-2 py-0.5" data-severity="info" style="display: ${fileSeverityCounts.info > 0 ? 'inline-flex' : 'none'}"><span class="h-1.5 w-1.5 rounded-full bg-teal-500"></span><span class="count">${fileSeverityCounts.info}</span></span>
                 </div>
             `;
-            
+
             div.onclick = () => {
                 this.activeFile = this.activeFile === file ? null : file;
                 this.applyFilters();
                 this.updateSidebarActiveState();
             };
-            
+
+            div.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    div.click();
+                }
+            });
+
             this.elements.fileList.appendChild(div);
         }
 
@@ -727,35 +731,19 @@ class PhanDashboard {
     }
 
     updateSidebarActiveState() {
-        // Mettre à jour l'état actif des fichiers dans la sidebar sans recharger
         this.elements.fileList.querySelectorAll('.file').forEach(fileDiv => {
             const file = fileDiv.getAttribute('data-file');
             const isActive = this.activeFile === file;
-            
-            // Supprimer toutes les classes d'état actif
-            fileDiv.classList.remove('border-indigo-300', 'dark:border-indigo-600', 'shadow-lg');
-            fileDiv.classList.remove('bg-gradient-to-r', 'from-indigo-50', 'to-purple-50', 'dark:from-indigo-900/30', 'dark:to-purple-900/30');
-            
-            // Supprimer l'indicateur visuel existant
-            const existingIndicator = fileDiv.querySelector('.active-indicator');
-            if (existingIndicator) {
-                existingIndicator.remove();
-            }
-            
+
             if (isActive) {
-                fileDiv.classList.add('border-indigo-300', 'dark:border-indigo-600', 'shadow-lg');
-                fileDiv.classList.add('bg-gradient-to-r', 'from-indigo-50', 'to-purple-50', 'dark:from-indigo-900/30', 'dark:to-purple-900/30');
-                
-                // Ajouter l'indicateur visuel
-                const indicator = document.createElement('span');
-                indicator.className = 'active-indicator w-3 h-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full shadow-lg animate-pulse';
-                const rightContainer = fileDiv.querySelector('.ml-4.flex.items-center.gap-3');
-                if (rightContainer) {
-                    rightContainer.appendChild(indicator);
-                }
+                fileDiv.classList.add('border-transparent', 'bg-indigo-50', 'ring-2', 'ring-indigo-400', 'dark:border-transparent', 'dark:bg-indigo-950/40', 'dark:ring-indigo-500');
+                fileDiv.classList.remove('border-slate-200', 'bg-white', 'dark:border-slate-700', 'dark:bg-slate-900');
+            } else {
+                fileDiv.classList.remove('border-transparent', 'bg-indigo-50', 'ring-2', 'ring-indigo-400', 'dark:border-transparent', 'dark:bg-indigo-950/40', 'dark:ring-indigo-500');
+                fileDiv.classList.add('border-slate-200', 'bg-white', 'dark:border-slate-700', 'dark:bg-slate-900');
             }
         });
-        
+
         // Mettre à jour les compteurs de sévérité
         this.updateSeverityChipCounts();
         this.updateSidebarSeverityCounts();
@@ -794,7 +782,10 @@ class PhanDashboard {
             severityBadges.forEach(badge => {
                 const severity = badge.getAttribute('data-severity');
                 const count = fileSeverityCounts[severity] || 0;
-                badge.textContent = count;
+                const countNode = badge.querySelector('.count');
+                if (countNode) {
+                    countNode.textContent = count;
+                }
                 badge.style.display = count > 0 ? 'inline-flex' : 'none';
             });
         });
@@ -856,27 +847,29 @@ class PhanDashboard {
         this.elements.tbody.innerHTML = this.filtered.map(issue => {
             const id = this.generateIssueId(issue);
             const checked = this.state[id] === true;
-            const rowClass = checked ? 'opacity-60 bg-slate-50 dark:bg-slate-800/50' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50';
+            const rowClass = checked
+                ? 'bg-slate-100/80 dark:bg-slate-800/60'
+                : 'hover:bg-slate-100 dark:hover:bg-slate-800/40';
             const copyValue = `${issue.file}:${issue.line || 1}`;
             const severity = this.getSeverityClass(issue.severity);
-            const severityClasses = this.severityClasses[severity] || 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
-            
+            const severityClasses = this.severityClasses[severity] || 'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200';
+
             const fileCell = `
-                <div class="flex items-center justify-between group min-w-0">
-                    <span class="font-mono text-sm text-slate-700 dark:text-slate-300 truncate max-w-xs" title="${this.escapeHtml(issue.file)}">${this.escapeHtml(this.shortPath(issue.file))}</span>
-                    <div class="path-tools flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2 flex-shrink-0">
-                        <button class="px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-200" data-copy="${this.escapeHtml(copyValue)}">📋</button>
+                <div class="group flex min-w-0 items-center justify-between">
+                    <span class="max-w-xs truncate font-mono text-sm text-slate-700 dark:text-slate-300" title="${this.escapeHtml(issue.file)}">${this.escapeHtml(this.shortPath(issue.file))}</span>
+                    <div class="path-tools ml-2 flex-shrink-0 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                        <button class="inline-flex items-center rounded border border-slate-300 px-2 py-1 text-xs text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-300 dark:hover:border-indigo-500 dark:hover:text-indigo-300" data-copy="${this.escapeHtml(copyValue)}">📋</button>
                     </div>
                 </div>
             `;
-            
+
             return `
-                <tr class="${rowClass} transition-all duration-200" data-id="${id}">
+                <tr class="${rowClass} transition-colors duration-150" data-id="${id}">
                     <td class="px-4 py-3 w-12">
                         <input type="checkbox" data-id="${id}" ${checked ? 'checked' : ''} class="custom-checkbox">
                     </td>
                     <td class="px-4 py-3 w-32">
-                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold border shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 ${severityClasses}">${this.formatSeverity(issue.severity)}</span>
+                        <span class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${severityClasses}">${this.formatSeverity(issue.severity)}</span>
                     </td>
                     <td class="px-4 py-3 w-40 font-mono text-sm text-slate-700 dark:text-slate-300 truncate" title="${this.escapeHtml(issue.type)}">${this.escapeHtml(issue.type)}</td>
                     <td class="px-4 py-3 min-w-0 max-w-xs">${fileCell}</td>
