@@ -321,13 +321,32 @@ class PhanDashboard {
     }
 
     mapSeverity(value) {
-        if (typeof value === 'number') {
-            return value >= 10 ? 'critical' : (value >= 5 ? 'normal' : 'info');
+        if (typeof value === 'number' && !Number.isNaN(value)) {
+            if (value >= 10) return 'critical';
+            if (value >= 7) return 'high';
+            if (value >= 4) return 'normal';
+            if (value >= 2) return 'low';
+            return 'info';
         }
-        
+
         const normalized = String(value || 'info').toLowerCase();
-        if (/^(critical|high|10)$/.test(normalized)) return 'critical';
-        if (/^(normal|medium|moderate|5)$/.test(normalized)) return 'normal';
+
+        if (['critical', 'blocker', 'fatal', 'error', '10'].includes(normalized)) {
+            return 'critical';
+        }
+
+        if (['high', 'major', 'severe', 'warning', '9', '8', '7'].includes(normalized)) {
+            return 'high';
+        }
+
+        if (['normal', 'medium', 'moderate', 'default', '5', '6'].includes(normalized)) {
+            return 'normal';
+        }
+
+        if (['low', 'minor', 'notice', '3', '4'].includes(normalized)) {
+            return 'low';
+        }
+
         return 'info';
     }
 
