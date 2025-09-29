@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Logo Phan Dashboard</title>
+  <desc id="desc">Lettre P stylisée dans un cercle avec un dégradé bleu et violet</desc>
+  <defs>
+    <linearGradient id="gradient" x1="0%" x2="100%" y1="100%" y2="0%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#0ea5e9" />
+    </linearGradient>
+    <linearGradient id="highlight" x1="20%" x2="80%" y1="80%" y2="20%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <g fill="none" fill-rule="evenodd">
+    <circle cx="32" cy="32" r="30" fill="url(#gradient)" />
+    <path fill="url(#highlight)" d="M14 40c6 8 20 14 30 6 6-4 8-12 8-18-2 10-14 16-26 12-6-2-10-6-12-10z" />
+    <path fill="#f8fafc" d="M23 18h12c9 0 15 5 15 14 0 9-6 14-15 14h-6v8h-6V18zm12 20c6 0 9-3 9-8s-3-8-9-8h-6v16h6z" />
+  </g>
+</svg>
