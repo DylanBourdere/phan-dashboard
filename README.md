@@ -5,6 +5,10 @@ A modern, elegant dashboard for visualizing and tracking Phan reports with an ex
 [![GitHub stars](https://img.shields.io/github/stars/dylanbourdere/phan-dashboard?style=social)](https://github.com/dylanbourdere/phan-dashboard)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+## Live Demo
+
+Explore the dashboard online at **[dylanbourdere.github.io/phan-dashboard](https://dylanbourdere.github.io/phan-dashboard/)**.
+
 ## Features
 
 - **Modern UI** with dark/light mode

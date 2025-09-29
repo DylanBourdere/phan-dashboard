@@ -1,0 +1,39 @@
+{
+  "issues": [
+    {
+      "file": "src/Controller/UserController.php",
+      "line": 42,
+      "severity": "critical",
+      "type": "PhanUndeclaredMethod",
+      "message": "Call to undeclared method \\App\\Service\\UserManager::persist"
+    },
+    {
+      "file": "src/Controller/UserController.php",
+      "line": 88,
+      "severity": "high",
+      "type": "PhanTypeMismatchArgument",
+      "message": "Argument 1 (userId) is int but \"string\" was provided"
+    },
+    {
+      "file": "src/Domain/InvoiceGenerator.php",
+      "line": 17,
+      "severity": "normal",
+      "type": "PhanUnreferencedProtectedProperty",
+      "message": "Property $currency is never referenced"
+    },
+    {
+      "file": "src/Domain/InvoiceGenerator.php",
+      "line": 53,
+      "severity": "low",
+      "type": "PhanCommentParamTagMismatch",
+      "message": "@param tag mismatches the actual parameter name $template"
+    },
+    {
+      "file": "tests/Feature/RegistrationTest.php",
+      "line": 26,
+      "severity": "info",
+      "type": "PhanPossiblyNullTypeArgument",
+      "message": "Argument 2 ($email) is nullable but \"string\" expected"
+    }
+  ]
+}

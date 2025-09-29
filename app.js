@@ -23,7 +23,8 @@ class PhanDashboard {
                 'toggle_theme': 'Toggle theme',
                 'import_button': 'Import...',
                 'github_button': 'GitHub',
-                
+                'demo_button': 'Demo',
+
                 // Sidebar
                 'files_title': 'Files',
                 'summary_title': 'Summary',
@@ -61,7 +62,9 @@ class PhanDashboard {
                 'reset_confirm': 'Reset all checked items and clear data?',
                 'copy_success': 'Copied to clipboard',
                 'copy_error': 'Failed to copy',
-                
+                'demo_loaded': 'Demo report loaded',
+                'demo_error': 'Unable to load demo',
+
                 // Progress
                 'completed': 'completed',
                 'files_count': 'files',
@@ -73,7 +76,8 @@ class PhanDashboard {
                 'toggle_theme': 'Basculer le thème',
                 'import_button': 'Importer…',
                 'github_button': 'GitHub',
-                
+                'demo_button': 'Démo',
+
                 // Sidebar
                 'files_title': 'Fichiers',
                 'summary_title': 'Résumé',
@@ -111,7 +115,9 @@ class PhanDashboard {
                 'reset_confirm': 'Réinitialiser toutes les cases cochées et vider les données ?',
                 'copy_success': 'Copié dans le presse-papiers',
                 'copy_error': 'Échec de la copie',
-                
+                'demo_loaded': 'Rapport démo chargé',
+                'demo_error': 'Impossible de charger la démo',
+
                 // Progress
                 'completed': 'complété',
                 'files_count': 'fichiers',
@@ -129,6 +135,7 @@ class PhanDashboard {
         this.sortDir = 'asc';
         this.toastTimer = null;
         this.toastHideTimer = null;
+        this.demoReportPath = 'demo-report.json';
 
         // DOM elements
         this.elements = this.initializeElements();
@@ -189,7 +196,10 @@ class PhanDashboard {
         if (this.elements.resetButtonText) {
             this.elements.resetButtonText.textContent = this.t('reset_button');
         }
-        
+        if (this.elements.demoButtonLabel) {
+            this.elements.demoButtonLabel.textContent = this.t('demo_button');
+        }
+
         // Update sidebar
         this.renderSidebar();
         
@@ -284,6 +294,8 @@ class PhanDashboard {
             languageFlag: $('#languageFlag'),
             filesTitle: $('#filesTitle'),
             resetButtonText: $('#resetButtonText'),
+            demoButton: $('#demoButton'),
+            demoButtonLabel: $('#demoButtonLabel'),
             onlyOpen: $('#onlyOpen'),
             resetStateBtn: $('#resetState'),
             clearFilter: $('#clearFilter'),
@@ -590,7 +602,7 @@ class PhanDashboard {
 
     async ingest(data) {
         const issues = Array.isArray(data) ? data : (data?.issues || []);
-        
+
         this.raw = issues.map(issue => ({
             severity: this.mapSeverity(issue.severity ?? issue.level ?? 'info'),
             type: issue.type || issue.check_name || issue.rule || 'Issue',
@@ -621,6 +633,35 @@ class PhanDashboard {
     }
 
     // ===== File Loading =====
+    async loadDemoReport() {
+        try {
+            const response = await fetch(this.demoReportPath, { cache: 'no-store' });
+            if (!response.ok) {
+                const statusText = response.statusText || '';
+                const errorLabel = statusText ? `${response.status} ${statusText}` : String(response.status);
+                throw new Error(errorLabel);
+            }
+
+            const data = await response.json();
+
+            if (this.elements.search) {
+                this.elements.search.value = '';
+            }
+            if (this.elements.onlyOpen) {
+                this.elements.onlyOpen.checked = false;
+            }
+
+            this.state = {};
+            this.saveState();
+
+            await this.ingest(data);
+            this.showToast(this.t('demo_loaded'));
+        } catch (error) {
+            console.warn('Failed to load demo report:', error);
+            this.showToast(`${this.t('demo_error')}: ${error.message}`);
+        }
+    }
+
     async loadFromFile(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -980,6 +1021,12 @@ class PhanDashboard {
                 }
             }
         });
+
+        if (this.elements.demoButton) {
+            this.elements.demoButton.addEventListener('click', async () => {
+                await this.loadDemoReport();
+            });
+        }
 
         // Search
         this.elements.search.addEventListener('input', () => this.applyFilters());
